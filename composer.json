@@ -1,0 +1,12 @@
+{
+    "name": "shivampaw/go-cardless-installments",
+    "authors": [
+        {
+            "name": "Shivam Paw",
+            "email": "shivam@shivampaw.com"
+        }
+    ],
+    "require": {
+        "gocardless/gocardless-pro": "^3.2"
+    }
+}
