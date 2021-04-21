@@ -365,7 +365,7 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
             $order = $this->_get_order_from_webhook_event($event);
 
             if (!$order) {
-                return;
+                continue;
             }
 
             if ($event['resource_type'] == 'subscriptions') {
@@ -415,7 +415,7 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
         }
 
         if ($event['action'] == 'cancelled') {
-            $order->update_status('cancelled');
+            $order->cancel_order($event['details']['description']);
         }
     }
 
@@ -535,7 +535,6 @@ function add_fee_if_product_sale_is_before_installments_finish($cart)
 
             if ($finishDate > $endTimestamp) {
                 $cart->add_fee("Installment Finishes After Sale Fee - Item #" . $cartItem, $product->get_regular_price() - $product->get_sale_price());
-                wc_add_notice("The sale for <strong>" . $product->get_name() . "</strong> will have finished by the time your installments finish. A surcharge has been added to reflect the non-sale price.", 'notice');
             }
         }
     }
