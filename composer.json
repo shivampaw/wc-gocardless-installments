@@ -7,6 +7,6 @@
         }
     ],
     "require": {
-        "gocardless/gocardless-pro": "^3.2"
+        "gocardless/gocardless-pro": "^4.14"
     }
 }

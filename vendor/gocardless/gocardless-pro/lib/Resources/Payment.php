@@ -22,6 +22,7 @@ namespace GoCardlessPro\Resources;
  * @property-read $links
  * @property-read $metadata
  * @property-read $reference
+ * @property-read $retry_if_possible
  * @property-read $status
  */
 class Payment extends BaseResource
@@ -42,10 +43,10 @@ class Payment extends BaseResource
 
     /**
      * A future date on which the payment should be collected. If not specified,
-     * the payment will be collected as soon as possible. This must be on or
-     * after the [mandate](#core-endpoints-mandates)'s
-     * `next_possible_charge_date`, and will be rolled-forwards by GoCardless if
-     * it is not a working day.
+     * the payment will be collected as soon as possible. If the value is before
+     * the [mandate](#core-endpoints-mandates)'s `next_possible_charge_date`
+     * creation will fail. If the value is not a working day it will be rolled
+     * forwards to the next available one.
      */
     protected $charge_date;
 
@@ -99,13 +100,21 @@ class Payment extends BaseResource
      * <strong>BECS</strong> - 30 characters<br /> <strong>BECS NZ</strong> - 12
      * characters<br /> <strong>Betalingsservice</strong> - 30 characters<br />
      * <strong>PAD</strong> - 12 characters<br /> <strong>SEPA</strong> - 140
-     * characters <p class='restricted-notice'><strong>Restricted</strong>: You
-     * can only specify a payment reference for Bacs payments (that is, when
-     * collecting from the UK) if you're on the <a
-     * href='https://gocardless.com/pricing'>GoCardless Plus or Pro
+     * characters<br /> Note that this reference must be unique (for each
+     * merchant) for the BECS scheme as it is a scheme requirement. <p
+     * class='restricted-notice'><strong>Restricted</strong>: You can only
+     * specify a payment reference for Bacs payments (that is, when collecting
+     * from the UK) if you're on the <a
+     * href='https://gocardless.com/pricing'>GoCardless Plus, Pro or Enterprise
      * packages</a>.</p>
      */
     protected $reference;
+
+    /**
+     * On failure, automatically retry the payment using [intelligent
+     * retries](#success-intelligent-retries). Default is `false`.
+     */
+    protected $retry_if_possible;
 
     /**
      * One of:

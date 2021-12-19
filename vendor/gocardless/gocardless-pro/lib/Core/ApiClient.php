@@ -16,13 +16,13 @@ use GoCardlessPro\Core\Exception\ApiException;
 class ApiClient
 {
     /**
-     * @param string                     $access_token Auth api key
-     * @param string                     $endpoint_url API endpoint
-     * @param GuzzleHttp\ClientInterface $http_client  An HTTP client to make requests
+     * @param GuzzleHttp\ClientInterface $http_client An HTTP client to make requests
+     * @param array                      $config      configuration for the ApiClient
      */
-    public function __construct($http_client)
+    public function __construct($http_client, $config)
     {
         $this->http_client = $http_client;
+        $this->error_on_idempotency_conflict = $config['error_on_idempotency_conflict'];
     }
 
     /**
@@ -101,6 +101,9 @@ class ApiClient
 
     /**
      * Handle any errors in the API response
+     * 
+     * If the response status is 204 - No Content, then we can skip response body
+     * JSON checks.
      *
      * If the response doesn't contain JSON, we will fail to decode and throw a
      * MalFormedResponseException.
@@ -112,6 +115,10 @@ class ApiClient
      */
     private function handleErrors($response)
     {
+        if ($response->getStatusCode() === 204) {
+            return null;
+        }
+
         $json = json_decode($response->getBody());
 
         if ($json === null) {
@@ -119,12 +126,13 @@ class ApiClient
             throw new Exception\MalformedResponseException($msg, $response);
         }
 
-        if ($response->getStatusCode() < 400) {
+        $status_code = $response->getStatusCode();
+        if ($status_code < 400) {
             return null;
         }
 
         $error = $json->error;
-        $exception_class = (string) ApiException::getErrorForType($error->type);
+        $exception_class = (string) ApiException::getError($status_code, $error->type);
         $exception_class = 'GoCardlessPro\\Core\\Exception\\' . $exception_class;
 
         $api_response = new ApiResponse($response);

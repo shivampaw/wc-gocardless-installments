@@ -122,9 +122,7 @@ class Customer extends BaseResource
 
     /**
      * [ITU E.123](https://en.wikipedia.org/wiki/E.123) formatted phone number,
-     * including country code. Required for New Zealand customers only. Must be
-     * supplied if the customer's bank account is denominated in New Zealand
-     * Dollars (NZD).
+     * including country code.
      */
     protected $phone_number;
 
@@ -134,7 +132,9 @@ class Customer extends BaseResource
     protected $postal_code;
 
     /**
-     * The customer's address region, county or department.
+     * The customer's address region, county or department. For US customers a 2
+     * letter [ISO3166-2:US](https://en.wikipedia.org/wiki/ISO_3166-2:US) state
+     * code is required (e.g. `CA` for California).
      */
     protected $region;
 

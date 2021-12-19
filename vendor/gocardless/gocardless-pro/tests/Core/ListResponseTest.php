@@ -2,6 +2,7 @@
 
 namespace GoCardlessPro\Core;
 
+use PHPUnit\Framework\TestCase;
 use GoCardlessPro\Core\Exceptions;
 use GoCardlessPro\Resources\BaseResource;
 
@@ -12,7 +13,7 @@ class FakeResource extends BaseResource
     protected $foo;
 }
 
-class ListResponseTest extends \PHPUnit_Framework_TestCase
+class ListResponseTest extends TestCase
 {
     protected $http_response;
 
@@ -53,5 +54,21 @@ class ListResponseTest extends \PHPUnit_Framework_TestCase
         }
         $this->assertEquals('test', $items[1]->foo);
         $this->assertEquals(2, count($items));
+    }
+
+    public function testForResponseWithNoCursors()
+    {
+        $body = '{"data": [{"id":"1", "foo":"hi"}, {"id": "2", "foo": "test"}]}';
+        $raw_response = new \GuzzleHttp\Psr7\Response(200, [], $body);
+
+        $decoded_body = json_decode($body, true);
+        $api_response = new ApiResponse($raw_response);
+        $model_class = 'GoCardlessPro\Core\FakeResource';
+
+        $this->list_response = new ListResponse($decoded_body['data'], $model_class, $api_response);
+        $records = $this->list_response->records;
+
+        $this->assertEquals(count($records), 2);
+        $this->assertEquals('test', $records[1]->foo);
     }
 }

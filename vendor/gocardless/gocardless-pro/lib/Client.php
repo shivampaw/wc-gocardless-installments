@@ -8,20 +8,19 @@ namespace GoCardlessPro;
 class Client
 {
 
-    const CA_CERT_FILENAME = 'cacert.pem';
-
     /**
-    * @var Core\ApiClient Internal reference to Api Client
-    */
+     * @var Core\ApiClient Internal reference to Api Client
+     */
     private $api_client;
 
     /**
      * @param array $config
      *     An array of config parameters
      *
-     *     @type string $environment
-     *     @type string $access_token
-     *     @type string $http_client
+     * @type string $environment
+     * @type string $access_token
+     * @type float $timeout
+     * @type string $http_client
      */
     public function __construct($config)
     {
@@ -43,31 +42,52 @@ class Client
             $stack = \GuzzleHttp\HandlerStack::create();
             $stack->push(RetryMiddlewareFactory::buildMiddleware());
 
+            $timeout = 0;
+            if(isset($config['timeout'])) {
+                $timeout = $config['timeout'];
+            }
+
             $http_client = new \GuzzleHttp\Client(
                 [
                 'base_uri' => $endpoint_url,
+                'timeout' => $timeout,
                 'headers' => array(
                 'GoCardless-Version' => '2015-07-06',
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'Authorization' => "Bearer " . $access_token,
                 'GoCardless-Client-Library' => 'gocardless-pro-php',
-                'GoCardless-Client-Version' => '3.2.0',
+                'GoCardless-Client-Version' => '4.14.0',
                 'User-Agent' => $this->getUserAgent()
                 ),
                 'http_errors' => false,
-                'verify' => $this->getCACertPath(),
+                'verify' => true,
                 'handler' => $stack
                 ]
             );
         }
 
-        $this->api_client = new \GoCardlessPro\Core\ApiClient($http_client);
+        $this->api_client = new \GoCardlessPro\Core\ApiClient($http_client, $config);
     }
 
     
     /**
+     * Service for interacting with bank authorisations
+     *
+     * @return Services\BankAuthorisationsService
+     */
+    public function bankAuthorisations()
+    {
+        if (!isset($this->bank_authorisations)) {
+            $this->bank_authorisations = new Services\BankAuthorisationsService($this->api_client);
+        }
+
+        return $this->bank_authorisations;
+    }
+    
+    /**
      * Service for interacting with bank details lookups
+     *
      * @return Services\BankDetailsLookupsService
      */
     public function bankDetailsLookups()
@@ -80,7 +100,50 @@ class Client
     }
     
     /**
+     * Service for interacting with billing requests
+     *
+     * @return Services\BillingRequestsService
+     */
+    public function billingRequests()
+    {
+        if (!isset($this->billing_requests)) {
+            $this->billing_requests = new Services\BillingRequestsService($this->api_client);
+        }
+
+        return $this->billing_requests;
+    }
+    
+    /**
+     * Service for interacting with billing request flows
+     *
+     * @return Services\BillingRequestFlowsService
+     */
+    public function billingRequestFlows()
+    {
+        if (!isset($this->billing_request_flows)) {
+            $this->billing_request_flows = new Services\BillingRequestFlowsService($this->api_client);
+        }
+
+        return $this->billing_request_flows;
+    }
+    
+    /**
+     * Service for interacting with billing request templates
+     *
+     * @return Services\BillingRequestTemplatesService
+     */
+    public function billingRequestTemplates()
+    {
+        if (!isset($this->billing_request_templates)) {
+            $this->billing_request_templates = new Services\BillingRequestTemplatesService($this->api_client);
+        }
+
+        return $this->billing_request_templates;
+    }
+    
+    /**
      * Service for interacting with creditors
+     *
      * @return Services\CreditorsService
      */
     public function creditors()
@@ -94,6 +157,7 @@ class Client
     
     /**
      * Service for interacting with creditor bank accounts
+     *
      * @return Services\CreditorBankAccountsService
      */
     public function creditorBankAccounts()
@@ -106,7 +170,22 @@ class Client
     }
     
     /**
+     * Service for interacting with currency exchange rates
+     *
+     * @return Services\CurrencyExchangeRatesService
+     */
+    public function currencyExchangeRates()
+    {
+        if (!isset($this->currency_exchange_rates)) {
+            $this->currency_exchange_rates = new Services\CurrencyExchangeRatesService($this->api_client);
+        }
+
+        return $this->currency_exchange_rates;
+    }
+    
+    /**
      * Service for interacting with customers
+     *
      * @return Services\CustomersService
      */
     public function customers()
@@ -120,6 +199,7 @@ class Client
     
     /**
      * Service for interacting with customer bank accounts
+     *
      * @return Services\CustomerBankAccountsService
      */
     public function customerBankAccounts()
@@ -133,6 +213,7 @@ class Client
     
     /**
      * Service for interacting with customer notifications
+     *
      * @return Services\CustomerNotificationsService
      */
     public function customerNotifications()
@@ -146,6 +227,7 @@ class Client
     
     /**
      * Service for interacting with events
+     *
      * @return Services\EventsService
      */
     public function events()
@@ -158,7 +240,36 @@ class Client
     }
     
     /**
+     * Service for interacting with instalment schedule
+     *
+     * @return Services\InstalmentSchedulesService
+     */
+    public function instalmentSchedules()
+    {
+        if (!isset($this->instalment_schedules)) {
+            $this->instalment_schedules = new Services\InstalmentSchedulesService($this->api_client);
+        }
+
+        return $this->instalment_schedules;
+    }
+    
+    /**
+     * Service for interacting with institutions
+     *
+     * @return Services\InstitutionsService
+     */
+    public function institutions()
+    {
+        if (!isset($this->institutions)) {
+            $this->institutions = new Services\InstitutionsService($this->api_client);
+        }
+
+        return $this->institutions;
+    }
+    
+    /**
      * Service for interacting with mandates
+     *
      * @return Services\MandatesService
      */
     public function mandates()
@@ -172,6 +283,7 @@ class Client
     
     /**
      * Service for interacting with mandate imports
+     *
      * @return Services\MandateImportsService
      */
     public function mandateImports()
@@ -185,6 +297,7 @@ class Client
     
     /**
      * Service for interacting with mandate import entries
+     *
      * @return Services\MandateImportEntriesService
      */
     public function mandateImportEntries()
@@ -198,6 +311,7 @@ class Client
     
     /**
      * Service for interacting with mandate pdfs
+     *
      * @return Services\MandatePdfsService
      */
     public function mandatePdfs()
@@ -210,7 +324,22 @@ class Client
     }
     
     /**
+     * Service for interacting with payer authorisations
+     *
+     * @return Services\PayerAuthorisationsService
+     */
+    public function payerAuthorisations()
+    {
+        if (!isset($this->payer_authorisations)) {
+            $this->payer_authorisations = new Services\PayerAuthorisationsService($this->api_client);
+        }
+
+        return $this->payer_authorisations;
+    }
+    
+    /**
      * Service for interacting with payments
+     *
      * @return Services\PaymentsService
      */
     public function payments()
@@ -224,6 +353,7 @@ class Client
     
     /**
      * Service for interacting with payouts
+     *
      * @return Services\PayoutsService
      */
     public function payouts()
@@ -237,6 +367,7 @@ class Client
     
     /**
      * Service for interacting with payout items
+     *
      * @return Services\PayoutItemsService
      */
     public function payoutItems()
@@ -250,6 +381,7 @@ class Client
     
     /**
      * Service for interacting with redirect flows
+     *
      * @return Services\RedirectFlowsService
      */
     public function redirectFlows()
@@ -263,6 +395,7 @@ class Client
     
     /**
      * Service for interacting with refunds
+     *
      * @return Services\RefundsService
      */
     public function refunds()
@@ -275,7 +408,22 @@ class Client
     }
     
     /**
+     * Service for interacting with scenario simulators
+     *
+     * @return Services\ScenarioSimulatorsService
+     */
+    public function scenarioSimulators()
+    {
+        if (!isset($this->scenario_simulators)) {
+            $this->scenario_simulators = new Services\ScenarioSimulatorsService($this->api_client);
+        }
+
+        return $this->scenario_simulators;
+    }
+    
+    /**
      * Service for interacting with subscriptions
+     *
      * @return Services\SubscriptionsService
      */
     public function subscriptions()
@@ -287,6 +435,34 @@ class Client
         return $this->subscriptions;
     }
     
+    /**
+     * Service for interacting with tax rates
+     *
+     * @return Services\TaxRatesService
+     */
+    public function taxRates()
+    {
+        if (!isset($this->tax_rates)) {
+            $this->tax_rates = new Services\TaxRatesService($this->api_client);
+        }
+
+        return $this->tax_rates;
+    }
+    
+    /**
+     * Service for interacting with webhooks
+     *
+     * @return Services\WebhooksService
+     */
+    public function webhooks()
+    {
+        if (!isset($this->webhooks)) {
+            $this->webhooks = new Services\WebhooksService($this->api_client);
+        }
+
+        return $this->webhooks;
+    }
+    
     private function getUrlForEnvironment($environment)
     {
         $environment_urls = array(
@@ -295,7 +471,7 @@ class Client
         );
 
         if(!array_key_exists($environment, $environment_urls)) {
-            throw new \InvalidArgumentException("$environment is not a valid environment, please use one of " . implode(array_keys($environment_urls), ", "));
+            throw new \InvalidArgumentException("$environment is not a valid environment, please use one of " . implode(", ", array_keys($environment_urls)));
         }
 
         return $environment_urls[$environment];
@@ -306,7 +482,7 @@ class Client
      *
      * @param array[string]mixed $config the client configuration options
      */
-    private function validate_config($config)
+    private function validate_config(&$config)
     {
         $required_option_keys = array('access_token', 'environment');
 
@@ -319,6 +495,12 @@ class Client
                 throw new \Exception('Option `'. $required_option_key .'` can only be a string.');
             }
         }
+
+        if (!isset($config['error_on_idempotency_conflict'])) {
+            $config['error_on_idempotency_conflict'] = false;
+        } elseif (!is_bool($config['error_on_idempotency_conflict'])) {
+            throw new \Exception('Option `error_on_idempotency_conflict` can only be a bool.');
+        }
     }
 
     /**
@@ -330,23 +512,19 @@ class Client
     {
         $curlinfo = curl_version();
         $uagent = array();
-        $uagent[] = 'gocardless-pro-php/3.2.0';
+        $uagent[] = 'gocardless-pro-php/4.14.0';
         $uagent[] = 'schema-version/2015-07-06';
-        $uagent[] = 'GuzzleHttp/' . \GuzzleHttp\Client::VERSION;
+        if (defined('\GuzzleHttp\Client::MAJOR_VERSION')) {
+            $uagent[] = 'GuzzleHttp/' . \GuzzleHttp\Client::MAJOR_VERSION;
+        } else {
+            // Backward compatibility for Guzzle <7.0
+            $uagent[] = 'GuzzleHttp/' . \GuzzleHttp\Client::VERSION;
+        }
         $uagent[] = 'php/' . phpversion();
         if (extension_loaded('curl') && function_exists('curl_version')) {
             $uagent[] = 'curl/' . \curl_version()['version'];
             $uagent[] = 'curl/' . \curl_version()['host'];
         }
         return implode(' ', $uagent);
-    }
-
-    /**
-     * Internal function for finding the path to cacert.pem
-     * @return Path to the cacert.pem file
-     */
-    private function getCACertPath()
-    {
-        return dirname(__FILE__) . "/../" . self::CA_CERT_FILENAME;
     }
 }

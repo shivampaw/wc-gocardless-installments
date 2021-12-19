@@ -13,9 +13,11 @@ namespace GoCardlessPro\Resources;
  *
  * @property-read $amount
  * @property-read $app_fee
+ * @property-read $count
  * @property-read $created_at
  * @property-read $currency
  * @property-read $day_of_month
+ * @property-read $earliest_charge_date_after_resume
  * @property-read $end_date
  * @property-read $id
  * @property-read $interval
@@ -25,6 +27,7 @@ namespace GoCardlessPro\Resources;
  * @property-read $month
  * @property-read $name
  * @property-read $payment_reference
+ * @property-read $retry_if_possible
  * @property-read $start_date
  * @property-read $status
  * @property-read $upcoming_payments
@@ -47,15 +50,20 @@ class Subscription extends BaseResource
     protected $app_fee;
 
     /**
+     * The total number of payments that should be taken by this subscription.
+     */
+    protected $count;
+
+    /**
      * Fixed [timestamp](#api-usage-time-zones--dates), recording when this
      * resource was created.
      */
     protected $created_at;
 
     /**
-     * [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217) currency code.
-     * Currently `GBP`, `EUR`, `SEK`, `DKK`, `AUD`, `NZD` and `CAD` are
-     * supported.
+     * [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217#Active_codes) currency
+     * code. Currently "AUD", "CAD", "DKK", "EUR", "GBP", "NZD", "SEK" and "USD"
+     * are supported.
      */
     protected $currency;
 
@@ -66,12 +74,22 @@ class Subscription extends BaseResource
     protected $day_of_month;
 
     /**
-     * Date on or after which no further payments should be created. If this
-     * field is blank and `count` is not specified, the subscription will
-     * continue forever. <p
-     * class='deprecated-notice'><strong>Deprecated</strong>: This field will be
-     * removed in a future API version. Use `count` to specify a number of
-     * payments instead. </p>
+     * The earliest date that will be used as a `charge_date` on payments
+     * created for this subscription if it is resumed. Only present for `paused`
+     * subscriptions.
+     * This value will change over time.
+     */
+    protected $earliest_charge_date_after_resume;
+
+    /**
+     * Date on or after which no further payments should be created.
+     * <br />
+     * If this field is blank and `count` is not specified, the subscription
+     * will continue forever.
+     * <br />
+     * <p class="deprecated-notice"><strong>Deprecated</strong>: This field will
+     * be removed in a future API version. Use `count` to specify a number of
+     * payments instead.</p>
      */
     protected $end_date;
 
@@ -119,19 +137,31 @@ class Subscription extends BaseResource
 
     /**
      * An optional payment reference. This will be set as the reference on each
-     * payment created and will appear on your customer's bank statement. See
-     * the documentation for the [create payment
-     * endpoint](#payments-create-a-payment) for more details. <p
-     * class='restricted-notice'><strong>Restricted</strong>: You need your own
-     * Service User Number to specify a payment reference for Bacs payments.</p>
+     * payment
+     * created and will appear on your customer's bank statement. See the
+     * documentation for
+     * the [create payment endpoint](#payments-create-a-payment) for more
+     * details.
+     * <br />
+     * <p class="restricted-notice"><strong>Restricted</strong>: You need your
+     * own Service User Number to specify a payment reference for Bacs
+     * payments.</p>
      */
     protected $payment_reference;
 
     /**
+     * On failure, automatically retry payments using [intelligent
+     * retries](#success-intelligent-retries). Default is `false`.
+     */
+    protected $retry_if_possible;
+
+    /**
      * The date on which the first payment should be charged. Must be on or
      * after the [mandate](#core-endpoints-mandates)'s
-     * `next_possible_charge_date`. When blank, this will be set as the
-     * mandate's `next_possible_charge_date`.
+     * `next_possible_charge_date`. When left blank and `month` or
+     * `day_of_month` are provided, this will be set to the date of the first
+     * payment. If created without `month` or `day_of_month` this will be set as
+     * the mandate's `next_possible_charge_date`
      */
     protected $start_date;
 
@@ -148,6 +178,8 @@ class Subscription extends BaseResource
      * subscription have been created</li>
      * <li>`cancelled`: the subscription has been cancelled and will no longer
      * create payments</li>
+     * <li>`paused`: the subscription has been paused and will not create
+     * payments</li>
      * </ul>
      */
     protected $status;

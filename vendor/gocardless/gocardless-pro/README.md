@@ -220,10 +220,10 @@ GoCardless supports webhooks, allowing you to receive real-time notifications wh
 
 The client allows you to validate that a webhook you receive is genuinely from GoCardless, and to parse it into `GoCardlessPro\Resources\Event` objects which are easy to work with:
 
-```ruby
+```php
 <?php
 // When you create a webhook endpoint, you can specify a secret. When GoCardless sends
-// you a webhook, it'll sign the body using that secret. Since only you and GoCardless
+// you a webhook, it will sign the body using that secret. Since only you and GoCardless
 // know the secret, you can check the signature and ensure that the webhook is truly
 // from GoCardless.
 //
@@ -247,17 +247,17 @@ try {
      header("HTTP/1.1 200 OK");
 } catch (GoCardlessPro\Core\Exception\InvalidSignatureException) {
      // The webhook doesn't appear to be genuinely from GoCardless, as the signature
-     // included in the `Webhook-Signature` header doesn't match one computed with your
-     // webhook endpoint secret and the body
+     // included in the `Webhook-Signature` header doesn't match the one computed with
+     // your webhook endpoint secret and the body
      header("HTTP/1.1 498 Invalid Token");
 }
 ```
 
 For more details on working with webhooks, see our ["Getting started" guide](https://developer.gocardless.com/getting-started/api/introduction/?lang=php).
 
-## Supporting PHP >= 5.6
+## Supporting PHP >= 7.2
 
-This client library only supports PHP >= 5.6. Earlier releases of PHP are now considered
+This client library only supports PHP >= 7.2. Earlier releases of PHP are now considered
 [end of life](http://php.net/supported-versions.php) and may be exposed to security
 vunerabilities.
 

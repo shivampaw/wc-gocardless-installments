@@ -13,6 +13,7 @@ namespace GoCardlessPro\Resources;
  *
  * @property-read $amount
  * @property-read $links
+ * @property-read $taxes
  * @property-read $type
  */
 class PayoutItem extends BaseResource
@@ -25,14 +26,11 @@ class PayoutItem extends BaseResource
      * the lowest denomination for the currency (e.g. pence in GBP, cents in
      * EUR), to one decimal place.
      * <p class="notice">For accuracy, we store some of our fees to greater
-     * precision than
-     * we can actually pay out (for example, a GoCardless fee we record might
-     * come to 0.5
-     * pence, but it is not possible to send a payout via bank transfer
-     * including a half
-     * penny).<br><br>To calculate the final amount of the payout, we sum all of
-     * the items
-     * and then round to the nearest currency unit.</p>
+     * precision than we can actually pay out (for example, a GoCardless fee we
+     * record might come to 0.5 pence, but it is not possible to send a payout
+     * via bank transfer including a half penny).<br><br>To calculate the final
+     * amount of the payout, we sum all of the items and then round to the
+     * nearest currency unit.</p>
      */
     protected $amount;
 
@@ -42,8 +40,17 @@ class PayoutItem extends BaseResource
     protected $links;
 
     /**
-     * The type of the credit (positive) or debit (negative) item in the payout.
-     * One of:
+     * An array of tax items <em>beta</em>
+     * 
+     * _Note_: VAT applies to transaction and surcharge fees for merchants
+     * operating in the <a href="https://gocardless.com/legal/vat-faqs">UK</a>
+     * and <a href="https://gocardless.com/fr-fr/legal/faq-tva">France</a>.
+     */
+    protected $taxes;
+
+    /**
+     * The type of the credit (positive) or debit (negative) item in the payout
+     * (inclusive of VAT if applicable). One of:
      * <ul>
      * <li>`payment_paid_out` (credit)</li>
      * <li>`payment_failed` (debit): The payment failed to be processed.</li>
@@ -51,13 +58,13 @@ class PayoutItem extends BaseResource
      * back.</li>
      * <li>`payment_refunded` (debit): The payment has been refunded to the
      * customer.</li>
-     * <li>`refund` (debit): <em>private beta</em> A refund sent to a customer,
-     * not linked to a payment.</li>
+     * <li>`refund` (debit): A refund sent to a customer, not linked to a
+     * payment.</li>
      * <li>`refund_funds_returned` (credit): The refund could not be sent to the
      * customer, and the funds have been returned to you.</li>
      * <li>`gocardless_fee` (credit/debit): The fees that GoCardless charged for
      * a payment. In the case of a payment failure or chargeback, these will
-     * appear as credits.</li>
+     * appear as credits. Will include taxes if applicable for merchants.</li>
      * <li>`app_fee` (credit/debit): The optional fees that a partner may have
      * taken for a payment. In the case of a payment failure or chargeback,
      * these will appear as credits.</li>
@@ -65,6 +72,10 @@ class PayoutItem extends BaseResource
      * collected which some partner integrations receive when their users take
      * payments. Only shown in partner payouts. In the case of a payment failure
      * or chargeback, these will appear as credits.</li>
+     * <li>`surcharge_fee` (credit/debit): GoCardless deducted a surcharge fee
+     * as the payment failed or was charged back, or refunded a surcharge fee as
+     * the bank or customer cancelled the chargeback. Will include taxes if
+     * applicable for merchants.</li>
      * </ul>
      */
     protected $type;

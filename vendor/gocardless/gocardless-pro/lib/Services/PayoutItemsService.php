@@ -17,6 +17,8 @@ use \GoCardlessPro\Core\Exception\InvalidStateException;
 /**
  * Service that provides access to the PayoutItem
  * endpoints of the API
+ *
+ * @method list()
  */
 class PayoutItemsService extends BaseService
 {
@@ -26,13 +28,13 @@ class PayoutItemsService extends BaseService
 
 
     /**
-    * Get all payout items in a single payout
-    *
-    * Example URL: /payout_items
-    *
-    * @param  string[mixed] $params An associative array for any params
-    * @return ListResponse
-    **/
+     * Get all payout items in a single payout
+     *
+     * Example URL: /payout_items
+     *
+     * @param  string[mixed] $params An associative array for any params
+     * @return ListResponse
+     **/
     protected function _doList($params = array())
     {
         $path = "/payout_items";
@@ -48,13 +50,13 @@ class PayoutItemsService extends BaseService
     }
 
     /**
-    * Get all payout items in a single payout
-    *
-    * Example URL: /payout_items
-    *
-    * @param  string[mixed] $params
-    * @return Paginator
-    **/
+     * Get all payout items in a single payout
+     *
+     * Example URL: /payout_items
+     *
+     * @param  string[mixed] $params
+     * @return Paginator
+     **/
     public function all($params = array())
     {
         return new Paginator($this, $params);

@@ -14,6 +14,7 @@ class RetryMiddlewareFactory
 
     /**
      * Builds an appropriately configured RetryMiddleware to retry failed requests
+     *
      * @return GuzzleHttp\RetryMiddleware
      */
     public static function buildMiddleware()
@@ -23,6 +24,7 @@ class RetryMiddlewareFactory
 
     /**
      * Internal function for building a retry decider for the Guzzle Retry middleware
+     *
      * @return callable A function called to decide whether to retry a request
      */
     private static function buildRetryDecider()
@@ -31,7 +33,7 @@ class RetryMiddlewareFactory
             $retries,
             \GuzzleHttp\Psr7\Request $request,
             \GuzzleHttp\Psr7\Response $response = null,
-            \GuzzleHttp\Exception\RequestException $exception = null
+            \GuzzleHttp\Exception\TransferException $exception = null
         ) {
             if ($retries >= self::MAX_AUTOMATIC_TIMEOUT_RETRIES) {
                 return false;
@@ -41,13 +43,13 @@ class RetryMiddlewareFactory
                 return false;
             }
 
-            if ($request->getMethod() == "GET" || $request->getMethod() == "PUT") {
+            if ($request->getMethod() === "GET" || $request->getMethod() === "PUT") {
                 return true;
             }
 
             $path = $request->getUri()->getPath();
 
-            if ($request->getMethod() == "POST") {
+            if ($request->getMethod() === "POST") {
                 if (!preg_match(self::ACTIONS_PATH_REGEX, $path)) {
                     return true;
                 }
@@ -59,6 +61,7 @@ class RetryMiddlewareFactory
 
     /**
      * Internal function for setting the delay for the Guzzle Retry middleware
+     *
      * @return callable A function called to decide how long to delay before a retry
      */
     private static function buildRetryDelay()
@@ -72,9 +75,10 @@ class RetryMiddlewareFactory
 
     /**
      * Internal function for determining if a request hit a connection error
+     *
      * @return boolean
-    */
-    private static function isConnectionError(\GuzzleHttp\Exception\RequestException $exception = null)
+     */
+    private static function isConnectionError(\GuzzleHttp\Exception\TransferException $exception = null)
     {
         return $exception instanceof \GuzzleHttp\Exception\ConnectException;
     }
@@ -83,9 +87,10 @@ class RetryMiddlewareFactory
      * Internal function for determining if a response was a 5XX indicating a problem on
      * GoCardless' end, where a retry is likely to resolve the problem (e.g. 504 Gateway
      * Timeout)
+     *
      * @return boolean
      */
-    private static function isRetryableServerError(\GuzzleHttp\Psr7\Response $response)
+    private static function isRetryableServerError(\GuzzleHttp\Psr7\Response $response = null)
     {
         if ($response) {
             $statusCode = $response->getStatusCode();

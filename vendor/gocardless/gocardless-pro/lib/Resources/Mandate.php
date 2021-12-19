@@ -49,8 +49,8 @@ class Mandate extends BaseResource
     protected $metadata;
 
     /**
-     * The earliest date a newly created payment for this mandate could be
-     * charged.
+     * The earliest date that can be used as a `charge_date` on any newly
+     * created payment for this mandate. This value will change over time.
      */
     protected $next_possible_charge_date;
 
@@ -89,6 +89,10 @@ class Mandate extends BaseResource
      * <li>`failed`: the mandate could not be created</li>
      * <li>`cancelled`: the mandate has been cancelled</li>
      * <li>`expired`: the mandate has expired due to dormancy</li>
+     * <li>`consumed`: the mandate has been consumed and cannot be reused (note
+     * that this only applies to schemes that are per-payment authorised)</li>
+     * <li>`blocked`: the mandate has been blocked and payments cannot be
+     * created</li>
      * </ul>
      */
     protected $status;

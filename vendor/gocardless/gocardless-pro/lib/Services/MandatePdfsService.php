@@ -17,6 +17,8 @@ use \GoCardlessPro\Core\Exception\InvalidStateException;
 /**
  * Service that provides access to the MandatePdf
  * endpoints of the API
+ *
+ * @method create()
  */
 class MandatePdfsService extends BaseService
 {
@@ -26,13 +28,13 @@ class MandatePdfsService extends BaseService
 
 
     /**
-    * Create a mandate PDF
-    *
-    * Example URL: /mandate_pdfs
-    *
-    * @param  string[mixed] $params An associative array for any params
-    * @return MandatePdf
-    **/
+     * Create a mandate PDF
+     *
+     * Example URL: /mandate_pdfs
+     *
+     * @param  string[mixed] $params An associative array for any params
+     * @return MandatePdf
+     **/
     public function create($params = array())
     {
         $path = "/mandate_pdfs";

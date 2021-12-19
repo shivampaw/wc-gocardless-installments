@@ -17,6 +17,13 @@ use \GoCardlessPro\Core\Exception\InvalidStateException;
 /**
  * Service that provides access to the Mandate
  * endpoints of the API
+ *
+ * @method create()
+ * @method list()
+ * @method get()
+ * @method update()
+ * @method cancel()
+ * @method reinstate()
  */
 class MandatesService extends BaseService
 {
@@ -26,13 +33,13 @@ class MandatesService extends BaseService
 
 
     /**
-    * Create a mandate
-    *
-    * Example URL: /mandates
-    *
-    * @param  string[mixed] $params An associative array for any params
-    * @return Mandate
-    **/
+     * Create a mandate
+     *
+     * Example URL: /mandates
+     *
+     * @param  string[mixed] $params An associative array for any params
+     * @return Mandate
+     **/
     public function create($params = array())
     {
         $path = "/mandates";
@@ -47,6 +54,9 @@ class MandatesService extends BaseService
             $response = $this->api_client->post($path, $params);
         } catch(InvalidStateException $e) {
             if ($e->isIdempotentCreationConflict()) {
+                if ($this->api_client->error_on_idempotency_conflict) {
+                    throw $e;
+                }
                 return $this->get($e->getConflictingResourceId());
             }
 
@@ -58,13 +68,13 @@ class MandatesService extends BaseService
     }
 
     /**
-    * List mandates
-    *
-    * Example URL: /mandates
-    *
-    * @param  string[mixed] $params An associative array for any params
-    * @return ListResponse
-    **/
+     * List mandates
+     *
+     * Example URL: /mandates
+     *
+     * @param  string[mixed] $params An associative array for any params
+     * @return ListResponse
+     **/
     protected function _doList($params = array())
     {
         $path = "/mandates";
@@ -80,15 +90,15 @@ class MandatesService extends BaseService
     }
 
     /**
-    * Get a single mandate
-    *
-    * Example URL: /mandates/:identity
-    *
-    * @param  string        $identity Unique identifier, beginning with "MD". Note that this
- prefix may not apply to mandates created before 2016.
-    * @param  string[mixed] $params   An associative array for any params
-    * @return Mandate
-    **/
+     * Get a single mandate
+     *
+     * Example URL: /mandates/:identity
+     *
+     * @param  string        $identity Unique identifier, beginning with "MD". Note that this
+                                 prefix may not apply to mandates created before 2016.
+     * @param  string[mixed] $params   An associative array for any params
+     * @return Mandate
+     **/
     public function get($identity, $params = array())
     {
         $path = Util::subUrl(
@@ -110,15 +120,15 @@ class MandatesService extends BaseService
     }
 
     /**
-    * Update a mandate
-    *
-    * Example URL: /mandates/:identity
-    *
-    * @param  string        $identity Unique identifier, beginning with "MD". Note that this
- prefix may not apply to mandates created before 2016.
-    * @param  string[mixed] $params   An associative array for any params
-    * @return Mandate
-    **/
+     * Update a mandate
+     *
+     * Example URL: /mandates/:identity
+     *
+     * @param  string        $identity Unique identifier, beginning with "MD". Note that this
+                                 prefix may not apply to mandates created before 2016.
+     * @param  string[mixed] $params   An associative array for any params
+     * @return Mandate
+     **/
     public function update($identity, $params = array())
     {
         $path = Util::subUrl(
@@ -142,15 +152,15 @@ class MandatesService extends BaseService
     }
 
     /**
-    * Cancel a mandate
-    *
-    * Example URL: /mandates/:identity/actions/cancel
-    *
-    * @param  string        $identity Unique identifier, beginning with "MD". Note that this
- prefix may not apply to mandates created before 2016.
-    * @param  string[mixed] $params   An associative array for any params
-    * @return Mandate
-    **/
+     * Cancel a mandate
+     *
+     * Example URL: /mandates/:identity/actions/cancel
+     *
+     * @param  string        $identity Unique identifier, beginning with "MD". Note that this
+                                 prefix may not apply to mandates created before 2016.
+     * @param  string[mixed] $params   An associative array for any params
+     * @return Mandate
+     **/
     public function cancel($identity, $params = array())
     {
         $path = Util::subUrl(
@@ -171,6 +181,9 @@ class MandatesService extends BaseService
             $response = $this->api_client->post($path, $params);
         } catch(InvalidStateException $e) {
             if ($e->isIdempotentCreationConflict()) {
+                if ($this->api_client->error_on_idempotency_conflict) {
+                    throw $e;
+                }
                 return $this->get($e->getConflictingResourceId());
             }
 
@@ -182,15 +195,15 @@ class MandatesService extends BaseService
     }
 
     /**
-    * Reinstate a mandate
-    *
-    * Example URL: /mandates/:identity/actions/reinstate
-    *
-    * @param  string        $identity Unique identifier, beginning with "MD". Note that this
- prefix may not apply to mandates created before 2016.
-    * @param  string[mixed] $params   An associative array for any params
-    * @return Mandate
-    **/
+     * Reinstate a mandate
+     *
+     * Example URL: /mandates/:identity/actions/reinstate
+     *
+     * @param  string        $identity Unique identifier, beginning with "MD". Note that this
+                                 prefix may not apply to mandates created before 2016.
+     * @param  string[mixed] $params   An associative array for any params
+     * @return Mandate
+     **/
     public function reinstate($identity, $params = array())
     {
         $path = Util::subUrl(
@@ -211,6 +224,9 @@ class MandatesService extends BaseService
             $response = $this->api_client->post($path, $params);
         } catch(InvalidStateException $e) {
             if ($e->isIdempotentCreationConflict()) {
+                if ($this->api_client->error_on_idempotency_conflict) {
+                    throw $e;
+                }
                 return $this->get($e->getConflictingResourceId());
             }
 
@@ -222,13 +238,13 @@ class MandatesService extends BaseService
     }
 
     /**
-    * List mandates
-    *
-    * Example URL: /mandates
-    *
-    * @param  string[mixed] $params
-    * @return Paginator
-    **/
+     * List mandates
+     *
+     * Example URL: /mandates
+     *
+     * @param  string[mixed] $params
+     * @return Paginator
+     **/
     public function all($params = array())
     {
         return new Paginator($this, $params);
