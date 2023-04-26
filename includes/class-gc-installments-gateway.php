@@ -530,7 +530,7 @@ function add_fee_if_product_sale_is_before_installments_finish($cart)
         $cartItem++;
         $product = $cartProduct['data'];
         if ($product->is_on_sale()) {
-            $finishDate = date(strtotime("+" . $post_data['wc-gc-installments-number'] - 1 . " months"));
+            $finishDate = date(strtotime("+" . intval($post_data['wc-gc-installments-number']) - 1 . " months"));
             $endTimestamp = $product->date_on_sale_to->getTimestamp();
 
             if ($finishDate > $endTimestamp) {
