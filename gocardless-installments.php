@@ -41,26 +41,26 @@ class GC_Installments
 
     public function register_meta_boxes()
     {
-        global $post;
-
-        $order_id = absint($post->ID);
-        $order = wc_get_order($order_id);
-        if (!$order) {
-            return;
-        }
-
-        if ($order->get_payment_method() != "gc-installments-gateway") {
-            return;
-        }
-
-        add_meta_box('gocardless-installments-subscription-events', 'Subscription Details', array($this, 'subscription_events_meta_box'), 'shop_order', 'side');
+        add_meta_box('gocardless-installments-subscription-events', 'Subscription Details', array($this, 'subscription_events_meta_box'), 'woocommerce_page_wc-orders', 'side', 'core');
     }
 
-    public function subscription_events_meta_box()
-    {
-        global $post;
+    public function subscription_events_meta_box($post)
+    {	
         try {
             $order = wc_get_order($post->ID);
+			
+			if (!$order) {
+				echo 'Order not found';
+				
+				return;
+			}
+
+			if ($order->get_payment_method() != "gc-installments-gateway") {
+				echo 'Order not paid using GoCardless Instalments';
+				
+				return;
+			}
+			
             $gateway = new GC_Installments_Gateway();
 
             $client = new Client([
@@ -71,7 +71,7 @@ class GC_Installments
 
             $events = $client->events()->list([
                 'params' => [
-                    'subscription' => get_post_meta($order->get_id(), 'subscription_id')[0]
+                    'subscription' => $order->get_meta('subscription_id'),
                 ]
             ]);
 
@@ -102,7 +102,7 @@ class GC_Installments
                     </li>';
             }
 
-            $subscription = $client->subscriptions()->get(get_post_meta($order->get_id(), 'subscription_id')[0]);
+            $subscription = $client->subscriptions()->get($order->get_meta('subscription_id'));
             $payments = '<p><strong>Upcoming Payments: </strong></p>';
             $payments .= '<p>';
             foreach ($subscription->upcoming_payments as $payment) {
@@ -113,9 +113,9 @@ class GC_Installments
             $text .= '
                 <li class="note system-note">
                     <div class="note_content">
-                        <p><strong>Number of Installments:</strong> ' . get_post_meta($order->get_id(), 'number_of_installments')[0] . '</p>
+                        <p><strong>Number of Installments:</strong> ' . $order->get_meta('number_of_installments') . '</p>
                         <br />
-                        <p><strong>GoCardless Subscription ID:</strong> ' . get_post_meta($order->get_id(), 'subscription_id')[0] . '</p>
+                        <p><strong>GoCardless Subscription ID:</strong> ' . $order->get_meta('subscription_id') . '</p>
                         <br />' . $payments . '
                     </div>
                 </li>
