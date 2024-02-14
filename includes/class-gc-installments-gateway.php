@@ -10,6 +10,11 @@ use GoCardlessPro\Environment;
  */
 class GC_Installments_Gateway extends WC_Payment_Gateway
 {
+	protected $sandbox;
+	protected $access_token;
+	protected $webhook_secret;
+	protected $min_cart_total_two;
+	protected $min_cart_total_four;
 
     /**
      * GC_Installments_Gateway constructor.
@@ -130,8 +135,14 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
             echo wpautop(wp_kses_post($this->description));
         }
 
-        $selectedTwo = $_SESSION['wc-gc-installments-number'] == '2' ? 'selected' : '';
-        $selectedFour = $_SESSION['wc-gc-installments-number'] == '4' ? 'selected' : '';
+        $selectedTwo = ($_SESSION['wc-gc-installments-number'] ?? null) == '2' ? 'selected' : '';
+        $selectedFour = ($_SESSION['wc-gc-installments-number'] ?? null) == '4' ? 'selected' : '';
+		
+		$fourOption = '<option ' . $selectedFour . ' value="4">4 Installments (Min Order: £' . $this->min_cart_total_four . ')</option>';
+
+		if (!$this->min_cart_total_four) {
+			$fourOption = '';
+		}
 
         echo '
             <div id="wc-gc-installments-form" class="wc-payment-form">
@@ -140,7 +151,7 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
                     <select name="wc-gc-installments-number" style="display: block; width: 100%">
                         <option value="">Choose...</option>
                         <option ' . $selectedTwo . ' value="2">2 Installments (Min Order: £' . $this->min_cart_total_two . ')</option>
-                        <option ' . $selectedFour . ' value="4">4 Installments (Min Order: £' . $this->min_cart_total_four . ')</option>
+                        ' . $fourOption . '
                     </select>
                 </div>
             </div>                     
@@ -148,7 +159,7 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
 
         global $woocommerce;
         $cartTotal = floatval($woocommerce->cart->get_total('float'));
-        $numberOfInstallments = $_SESSION['wc-gc-installments-number'];
+        $numberOfInstallments = $_SESSION['wc-gc-installments-number'] ??null;
         if (!empty($_SESSION['wc-gc-installments-number'])) {
             echo "<p>£" . number_format($cartTotal / $numberOfInstallments, 2) . " per month for " . $numberOfInstallments . " months.</p>";
         }
@@ -235,7 +246,8 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
             ]
         ]);
 
-        add_post_meta($order_id, 'number_of_installments', $_POST['wc-gc-installments-number']);
+		$order->add_meta_data('number_of_installments', $_POST['wc-gc-installments-number']);
+		$order->save();
 
         return $redirectFlow->redirect_url;
     }
@@ -290,7 +302,7 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
      */
     public function _complete_redirect_flow_and_create_subscription($order)
     {
-        $numberOfInstallments = get_post_meta($order->get_id(), 'number_of_installments')[0];
+        $numberOfInstallments = $order->get_meta('number_of_installments');
         $orderTotal = $order->get_total();
         $sessionToken = $order->get_order_key();
 
@@ -318,11 +330,12 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
                     ]
                 ]
             ]);
+			
+			$order->add_meta_data('subscription_id', $subscription->id);
+			$order->save();
         } catch (Exception $e) {
             wp_die("Error: " . $e->getMessage() . ". You have not been charged.");
         }
-
-        add_post_meta($order->get_id(), 'subscription_id', $subscription->id);
     }
 
     /**
@@ -432,10 +445,10 @@ class GC_Installments_Gateway extends WC_Payment_Gateway
             return;
         }
 
-        $numberOfInstallments = get_post_meta($order->get_id(), 'number_of_installments')[0];
+        $numberOfInstallments = $order->get_meta('number_of_installments');
         $orderTotal = $order->get_total();
         $installmentValue = number_format($orderTotal / $numberOfInstallments, 2);
-        $subscriptionId = get_post_meta($order->get_id(), 'subscription_id')[0];
+        $subscriptionId = $order->get_meta('subscription_id');
 
         $client = new Client([
             'access_token' => $this->access_token,
@@ -518,7 +531,7 @@ function add_fee_if_product_sale_is_before_installments_finish($cart)
     }
 
 
-    if ($post_data['payment_method'] != 'gc-installments-gateway') {
+    if (($post_data['payment_method'] ?? null) != 'gc-installments-gateway') {
         return;
     }
 
